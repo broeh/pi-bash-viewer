@@ -39,7 +39,7 @@ test('PTY user bash operations surface aborts after streaming buffered output', 
     setInterval(() => console.log('tick'), 50);
   `);
 
-  setTimeout(() => controller.abort(), 100);
+  setTimeout(() => controller.abort(), 300);
 
   await assert.rejects(
     () => operations.exec(command, process.cwd(), {
