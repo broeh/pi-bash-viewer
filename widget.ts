@@ -2,7 +2,7 @@ import type { ExtensionContext } from '@mariozechner/pi-coding-agent';
 import { snapshotToAnsiContentLines } from './terminal-emulator.ts';
 import type { PtyTerminalSession } from './pty-session.ts';
 
-export const WIDGET_PREFIX = 'pi-bash-live-view/live/';
+export const WIDGET_PREFIX = 'pi-bash-viewer/live/';
 const DEFAULT_TITLE = 'Live terminal';
 const DEFAULT_ACCENT_COLOR = '77;163;255';
 

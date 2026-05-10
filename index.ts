@@ -3,7 +3,7 @@ import { Type } from '@sinclair/typebox';
 import { createPtyBashOperations, executePtyCommand } from './pty-execute.ts';
 import { ensureSpawnHelperExecutable } from './spawn-helper.ts';
 
-const bashLiveViewParams = Type.Object({
+const bashViewerParams = Type.Object({
   command: Type.String({ description: 'Command to execute' }),
   timeout: Type.Optional(Type.Number({ description: 'Timeout in seconds' })),
   usePTY: Type.Optional(Type.Boolean({ description: 'Run inside a PTY with a live terminal widget the user can see while its running. Use this when you suspect the program being ran has interesting ansi progress output, like buildsystems.' })),
@@ -27,14 +27,14 @@ async function runSlashCommand(args: string, ctx: ExtensionCommandContext) {
   ctx.ui.notify(text.slice(0, 4000), 'info');
 }
 
-export default function bashLiveView(pi: ExtensionAPI) {
+export default function bashViewer(pi: ExtensionAPI) {
   const originalBash = createBashTool(process.cwd());
 
   pi.registerTool({
     name: 'bash',
     label: 'bash',
     description: `${originalBash.description} Supports optional usePTY=true live terminal rendering for terminal-style programs and richer progress UIs.`,
-    parameters: bashLiveViewParams,
+    parameters: bashViewerParams,
     async execute(toolCallId, params, signal, onUpdate, ctx) {
       if (params.usePTY !== true) {
         return originalBash.execute(toolCallId, params, signal, onUpdate);

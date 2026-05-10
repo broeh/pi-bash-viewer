@@ -1,5 +1,5 @@
 {
-  "name": "pi-bash-live-view",
+  "name": "pi-bash-viewer",
   "version": "0.1.1",
   "description": "A pi extension that adds optional PTY-backed live terminal rendering to the bash tool via usePTY=true.",
   "type": "module",
@@ -7,12 +7,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lucasmeijer/pi-bash-live-view.git"
+    "url": "git+https://github.com/broeh/pi-bash-viewer.git"
   },
   "bugs": {
-    "url": "https://github.com/lucasmeijer/pi-bash-live-view/issues"
+    "url": "https://github.com/broeh/pi-bash-viewer/issues"
   },
-  "homepage": "https://github.com/lucasmeijer/pi-bash-live-view#readme",
+  "homepage": "https://github.com/broeh/pi-bash-viewer#readme",
   "keywords": [
     "pi-package",
     "pi",

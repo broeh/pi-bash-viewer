@@ -1,4 +1,4 @@
-# pi-bash-live-view
+# pi-bash-viewer
 
 When agents emit tool calls calls for build systems, those calls can take a long time.
 Often they have really nice visualizations of progress.
@@ -14,6 +14,6 @@ https://github.com/lucasmeijer/pi-bash-live-view/releases/download/readme-assets
 ## Install
 
 ```bash
-pi install npm:pi-bash-live-view
+pi install npm:pi-bash-viewer
 ```
 

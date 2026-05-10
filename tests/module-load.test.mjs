@@ -10,11 +10,11 @@ test('extension entrypoint loads', async () => {
 });
 
 test('malformed legacy config files do not affect module loading or PTY execution setup', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-bash-live-view-no-config-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-bash-viewer-no-config-'));
   const originalCwd = process.cwd();
   try {
     fs.mkdirSync(path.join(dir, '.pi'), { recursive: true });
-    fs.writeFileSync(path.join(dir, '.pi', 'pi-bash-live-view.json'), '{ definitely not json');
+    fs.writeFileSync(path.join(dir, '.pi', 'pi-bash-viewer.json'), '{ definitely not json');
     process.chdir(dir);
     const mod = await import(`../index.ts?cacheBust=${Date.now()}`);
     assert.equal(typeof mod.default, 'function');
