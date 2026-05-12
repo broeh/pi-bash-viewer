@@ -8,6 +8,7 @@ const DEFAULT_ACCENT_COLOR = '77;163;255';
 
 export type LiveSession = {
   id: string;
+  command: string;
   startedAt: number;
   rows: number;
   visible: boolean;
@@ -15,6 +16,7 @@ export type LiveSession = {
   timer?: NodeJS.Timeout;
   session: PtyTerminalSession;
   requestRender?: () => void;
+  closeView?: () => void;
 };
 
 export function formatElapsed(ms: number): string {
@@ -36,7 +38,7 @@ export function buildTopBorder(title: string, innerWidth: number, elapsedMs: num
   return `${titleText}${fill}${timer}`.padEnd(innerWidth, '─').slice(0, innerWidth);
 }
 
-function fitAnsiLine(line: string, width: number): string {
+export function fitAnsiLine(line: string, width: number): string {
   let out = '';
   let visible = 0;
   let i = 0;
@@ -58,6 +60,7 @@ function fitAnsiLine(line: string, width: number): string {
 
 export function buildWidgetAnsiLines({
   title = DEFAULT_TITLE,
+  footer,
   snapshot,
   width,
   rows,
@@ -65,6 +68,7 @@ export function buildWidgetAnsiLines({
   accentColor = DEFAULT_ACCENT_COLOR,
 }: {
   title?: string;
+  footer?: string;
   snapshot: ReturnType<PtyTerminalSession['getViewportSnapshot']>;
   width: number;
   rows: number;
@@ -76,11 +80,15 @@ export function buildWidgetAnsiLines({
   const innerWidth = Math.max(10, width - 2);
   const top = `${accent}╭${buildTopBorder(title, innerWidth, elapsedMs)}╮${reset}`;
   const bottom = `${accent}╰${'─'.repeat(innerWidth)}╯${reset}`;
-  const bodySource = snapshotToAnsiContentLines(snapshot).slice(-rows);
+  const bodyRows = footer ? Math.max(0, rows - 1) : rows;
+  const bodySource = snapshotToAnsiContentLines(snapshot).slice(-bodyRows);
   const body = [];
-  for (let i = 0; i < rows; i += 1) {
+  for (let i = 0; i < bodyRows; i += 1) {
     const line = fitAnsiLine(bodySource[i] ?? '', innerWidth);
     body.push(`${accent}│${reset}${line}${accent}│${reset}`);
+  }
+  if (footer) {
+    body.push(`${accent}│${reset}${fitAnsiLine(footer, innerWidth)}${accent}│${reset}`);
   }
   return [top, ...body, bottom];
 }

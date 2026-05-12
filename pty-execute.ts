@@ -1,13 +1,20 @@
 import type { BashOperations, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { getShellConfig } from '@earendil-works/pi-coding-agent';
 import { buildAbortError, buildExitCodeError, buildSuccessfulBashResult, buildTimeoutError } from './truncate.ts';
-import { hideWidget, showWidget, type LiveSession } from './widget.ts';
+import type { LiveSession } from './widget.ts';
+import { showLiveTerminal, hideLiveTerminal } from './overlay.ts';
 import { PtyTerminalSession } from './pty-session.ts';
+import type { PanelController } from './panel.ts';
 
 export const WIDGET_DELAY_MS = 100;
 export const WIDGET_HEIGHT = 15;
 export const DEFAULT_PTY_COLS = 100;
 export const XTERM_SCROLLBACK_LINES = 100_000;
+
+export type PtyExecutionOptions = {
+  splitView?: boolean;
+  panel?: Pick<PanelController, 'addLivePty'>;
+};
 
 async function runPtyCommand(
   id: string,
@@ -16,6 +23,7 @@ async function runPtyCommand(
   timeout: number | undefined,
   signal: AbortSignal,
   ctx: ExtensionContext,
+  options: PtyExecutionOptions = {},
 ) {
   const shellConfig = getShellConfig();
   const cols = DEFAULT_PTY_COLS;
@@ -32,6 +40,7 @@ async function runPtyCommand(
 
   const session: LiveSession = {
     id,
+    command,
     startedAt: Date.now(),
     rows,
     visible: false,
@@ -43,8 +52,14 @@ async function runPtyCommand(
     session.requestRender?.();
   });
 
+  let cleanupView: (() => void) | undefined;
   if (ctx.hasUI) {
-    session.timer = setTimeout(() => showWidget(ctx, session), WIDGET_DELAY_MS);
+    if (options.splitView && options.panel) {
+      cleanupView = options.panel.addLivePty(session);
+    } else {
+      session.timer = setTimeout(() => showLiveTerminal(ctx, session), WIDGET_DELAY_MS);
+      cleanupView = () => hideLiveTerminal(ctx, session);
+    }
   }
 
   let timeoutHandle: NodeJS.Timeout | undefined;
@@ -90,7 +105,8 @@ async function runPtyCommand(
     signal.removeEventListener('abort', onAbort);
     if (session.timer) clearTimeout(session.timer);
     session.disposed = true;
-    hideWidget(ctx, session);
+    cleanupView?.();
+    if (!cleanupView) hideLiveTerminal(ctx, session);
     unsubscribe();
     ptySession.dispose();
   }
@@ -101,8 +117,9 @@ export async function executePtyCommand(
   params: { command: string; timeout?: number },
   signal: AbortSignal,
   ctx: ExtensionContext,
+  options: PtyExecutionOptions = {},
 ) {
-  const result = await runPtyCommand(toolCallId, params.command, ctx.cwd, params.timeout, signal, ctx);
+  const result = await runPtyCommand(toolCallId, params.command, ctx.cwd, params.timeout, signal, ctx, options);
 
   if (result.aborted) {
     throw buildAbortError(result.fullText);
@@ -117,7 +134,7 @@ export async function executePtyCommand(
   return buildSuccessfulBashResult(result.fullText);
 }
 
-export function createPtyBashOperations(ctx: ExtensionContext): BashOperations {
+export function createPtyBashOperations(ctx: ExtensionContext, options: PtyExecutionOptions = {}): BashOperations {
   return {
     async exec(command, cwd, { onData, signal, timeout }) {
       const result = await runPtyCommand(
@@ -127,6 +144,7 @@ export function createPtyBashOperations(ctx: ExtensionContext): BashOperations {
         timeout,
         signal ?? new AbortController().signal,
         ctx,
+        options,
       );
 
       if (result.fullText) {
