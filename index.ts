@@ -54,6 +54,7 @@ async function openLiveviewConfig(ctx: ExtensionCommandContext, panel: PanelCont
 
   const buildItems = (): SettingItem[] => [
     { id: 'splitView', label: 'Split view', currentValue: settings.splitView ? 'enabled' : 'disabled', values: ['enabled', 'disabled'] },
+    { id: 'wordWrap', label: 'Word wrap', currentValue: settings.wordWrap ? 'enabled' : 'disabled', values: ['enabled', 'disabled'] },
     { id: 'panelWidth', label: 'Panel width', currentValue: settings.panelWidth, values: ['30%', '40%', '50%'] },
     { id: 'minTermWidth', label: 'Minimum terminal width', currentValue: String(settings.minTermWidth), values: ['80', '100', '120'] },
   ];
