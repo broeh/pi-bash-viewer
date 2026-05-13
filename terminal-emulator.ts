@@ -416,8 +416,8 @@ export function createTerminalEmulator({ cols, rows, scrollback = 10_000 }: { co
   }
 
   return {
-    cols,
-    rows,
+    get cols() { return term.cols; },
+    get rows() { return term.rows; },
     consumeProcessStdout,
     whenIdle() {
       return writeChain.then(() => undefined);
@@ -434,6 +434,9 @@ export function createTerminalEmulator({ cols, rows, scrollback = 10_000 }: { co
     dispose() {
       term.dispose?.();
       listeners.clear();
+    },
+    resize(newCols: number, newRows: number) {
+      term.resize(newCols, newRows);
     },
   };
 }

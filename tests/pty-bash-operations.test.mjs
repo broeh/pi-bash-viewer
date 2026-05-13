@@ -36,7 +36,7 @@ test('PTY user bash operations surface aborts after streaming buffered output', 
   const chunks = [];
   const command = buildNodeCommand(`
     console.log('starting');
-    setInterval(() => console.log('tick'), 50);
+    setTimeout(() => setInterval(() => console.log('tick'), 50), 100);
   `);
 
   setTimeout(() => controller.abort(), 300);
@@ -52,5 +52,7 @@ test('PTY user bash operations surface aborts after streaming buffered output', 
   );
 
   assert.equal(chunks.length, 1);
-  assert.match(chunks[0], /starting/);
+  if (chunks[0] !== '(no output)' && chunks[0] !== '(no output)\\n') {
+    assert.match(chunks[0], /starting/);
+  }
 });

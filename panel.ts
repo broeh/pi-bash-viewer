@@ -62,7 +62,7 @@ class LivePanelComponent {
   render(width: number): string[] {
     const entries = this.getEntries();
     const live = [...entries]
-      .filter((entry): entry is Extract<PanelEntry, { kind: 'live-pty' }> => entry.kind === 'live-pty' && !entry.session.disposed)
+      .filter((entry): entry is Extract<PanelEntry, { kind: 'live-pty' }> => entry.kind === 'live-pty')
       .sort((a, b) => b.addedAt - a.addedAt || b.seq - a.seq)[0];
 
     if (live) return this.renderLive(live, width);
@@ -75,13 +75,27 @@ class LivePanelComponent {
     const title = `${status}: ${shortCommand(session.command, Math.max(12, width - 28))}`;
     const footer = 'Live viewer · /liveview toggles';
     const accent = this.theme ? undefined : '77;163;255';
+
+    const desiredRows = Math.max(1, panelRows(this.tui) - 2);
+    const desiredCols = Math.max(10, width - 2);
+
+    if (!session.session.exited && !session.disposed) {
+      const effectiveCols = session.wordWrap === false ? session.session.cols : desiredCols;
+      if (session.session.cols !== effectiveCols || session.session.rows !== desiredRows) {
+        session.session.resize(effectiveCols, desiredRows);
+      }
+    }
+
+    const snapshot = session.finalSnapshot || session.session.getViewportSnapshot();
+    const elapsedMs = session.finalElapsedMs ?? (Date.now() - session.startedAt);
+
     return buildWidgetAnsiLines({
       title,
       footer,
-      snapshot: session.session.getViewportSnapshot(),
+      snapshot,
       width,
-      rows: Math.max(1, panelRows(this.tui) - 2),
-      elapsedMs: Date.now() - session.startedAt,
+      rows: desiredRows,
+      elapsedMs,
       ...(accent ? { accentColor: accent } : {}),
     });
   }
@@ -188,6 +202,12 @@ export function createPanelController(getSettings: () => LiveViewSettings): Pane
     },
 
     addLivePty(session) {
+      for (let i = entries.length - 1; i >= 0; i--) {
+        if (entries[i].kind === 'live-pty') {
+          entries.splice(i, 1);
+        }
+      }
+
       const entry = { kind: 'live-pty' as const, id: session.id, session, addedAt: Date.now(), seq: nextSeq++ };
       entries.push(entry);
       session.visible = true;

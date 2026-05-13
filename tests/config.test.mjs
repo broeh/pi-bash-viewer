@@ -4,7 +4,7 @@ import { DEFAULT_PTY_COLS, WIDGET_DELAY_MS, WIDGET_HEIGHT, XTERM_SCROLLBACK_LINE
 
 test('PTY execution uses hardcoded runtime defaults', () => {
   assert.equal(WIDGET_DELAY_MS, 100);
-  assert.equal(WIDGET_HEIGHT, 15);
-  assert.equal(DEFAULT_PTY_COLS, 100);
+  assert.equal(WIDGET_HEIGHT, 40);
+  assert.equal(DEFAULT_PTY_COLS, 120);
   assert.equal(XTERM_SCROLLBACK_LINES, 100_000);
 });

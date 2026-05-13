@@ -68,11 +68,16 @@ async function openLiveviewConfig(ctx: ExtensionCommandContext, panel: PanelCont
       getSettingsListTheme(),
       (id, newValue) => {
         if (id === 'splitView') settings = { ...settings, splitView: newValue === 'enabled' };
+        if (id === 'wordWrap') settings = { ...settings, wordWrap: newValue === 'enabled' };
         if (id === 'panelWidth') settings = { ...settings, panelWidth: newValue };
         if (id === 'minTermWidth') settings = { ...settings, minTermWidth: Number(newValue) };
         saveSettings(ctx.cwd, settings);
-        if (settings.splitView) panel.attach(ctx as unknown as ExtensionContext);
-        else panel.detach();
+        
+        panel.detach();
+        if (settings.splitView) {
+          panel.attach(ctx as unknown as ExtensionContext);
+        }
+        
         ctx.ui.notify(`liveview ${id} = ${newValue}`, 'info');
       },
       () => done(undefined),

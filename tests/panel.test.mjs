@@ -36,6 +36,7 @@ function makeSession(command, text, overrides = {}) {
     session: {
       exited: false,
       getViewportSnapshot: () => makeSnapshot(text),
+      resize: () => {},
     },
     ...overrides,
   };
@@ -90,7 +91,7 @@ test('panel renders event log mode when no live PTY is active', () => {
   assert.ok(attached.renders >= 1);
 });
 
-test('panel renders newest live PTY and falls back when disposed/removed', () => {
+test('panel renders newest live PTY and does not fall back when disposed/removed', () => {
   const controller = createPanelController(() => ({ splitView: true, panelWidth: '30%', minTermWidth: 80 }));
   const attached = attachPanel(controller);
 
@@ -103,10 +104,10 @@ test('panel renders newest live PTY and falls back when disposed/removed', () =>
   assert.doesNotMatch(attached.component.render(60).join('\n'), /old-output/);
 
   newSession.disposed = true;
-  assert.match(attached.component.render(60).join('\n'), /old-output/);
+  // Now it just shows the new session's final snapshot because it's disposed
+  assert.match(attached.component.render(60).join('\n'), /new-output/);
 
   cleanupNew();
-  cleanupOld();
   assert.match(attached.component.render(60).join('\n'), /Waiting for live output/);
 });
 

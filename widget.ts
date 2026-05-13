@@ -17,6 +17,8 @@ export type LiveSession = {
   session: PtyTerminalSession;
   requestRender?: () => void;
   closeView?: () => void;
+  finalSnapshot?: ReturnType<PtyTerminalSession['getViewportSnapshot']>;
+  finalElapsedMs?: number;
 };
 
 export function formatElapsed(ms: number): string {
@@ -99,11 +101,24 @@ function makeWidgetFactory(session: LiveSession) {
     return {
       invalidate() {},
       render(width: number) {
+        const desiredCols = Math.max(10, width - 2);
+        const desiredRows = session.rows;
+
+        if (!session.session.exited && !session.disposed) {
+          const effectiveCols = session.wordWrap === false ? session.session.cols : desiredCols;
+          if (session.session.cols !== effectiveCols || session.session.rows !== desiredRows) {
+            session.session.resize(effectiveCols, desiredRows);
+          }
+        }
+
+        const snapshot = session.finalSnapshot || session.session.getViewportSnapshot();
+        const elapsedMs = session.finalElapsedMs ?? (Date.now() - session.startedAt);
+
         return buildWidgetAnsiLines({
-          snapshot: session.session.getViewportSnapshot(),
+          snapshot,
           width,
-          rows: session.rows,
-          elapsedMs: Date.now() - session.startedAt,
+          rows: desiredRows,
+          elapsedMs,
         });
       },
     };

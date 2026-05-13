@@ -36,6 +36,7 @@ function makeSession(overrides = {}) {
     session: {
       exited: false,
       getViewportSnapshot: () => makeSnapshot('hello\nworld'),
+      resize: () => {},
     },
     ...overrides,
   };
@@ -67,6 +68,7 @@ test('overlay component uses terminal height to render a taller full-height pane
     session: {
       exited: false,
       getViewportSnapshot: () => makeSnapshot(Array.from({ length: 40 }, (_, i) => `line-${i + 1}`).join('\n'), 40),
+      resize: () => {},
     },
   });
   const component = new LiveTerminalOverlayComponent({ requestRender() {}, terminal: { rows: 30 } }, undefined, session, () => {});

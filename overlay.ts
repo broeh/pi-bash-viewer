@@ -60,13 +60,27 @@ export class LiveTerminalOverlayComponent {
       ? 'Done'
       : 'Esc/q hide overlay · command keeps running';
     const accent = this.theme ? undefined : '77;163;255';
+
+    const desiredRows = getDynamicOverlayRows(this.tui, this.session.rows);
+    const desiredCols = Math.max(10, width - 2);
+
+    if (!this.session.session.exited && !this.session.disposed) {
+      const effectiveCols = this.session.wordWrap === false ? this.session.session.cols : desiredCols;
+      if (this.session.session.cols !== effectiveCols || this.session.session.rows !== desiredRows) {
+        this.session.session.resize(effectiveCols, desiredRows);
+      }
+    }
+
+    const snapshot = this.session.finalSnapshot || this.session.session.getViewportSnapshot();
+    const elapsedMs = this.session.finalElapsedMs ?? (Date.now() - this.session.startedAt);
+
     return buildWidgetAnsiLines({
       title,
       footer,
-      snapshot: this.session.session.getViewportSnapshot(),
+      snapshot,
       width,
-      rows: getDynamicOverlayRows(this.tui, this.session.rows),
-      elapsedMs: Date.now() - this.session.startedAt,
+      rows: desiredRows,
+      elapsedMs,
       ...(accent ? { accentColor: accent } : {}),
     });
   }

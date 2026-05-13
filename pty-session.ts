@@ -95,6 +95,12 @@ export class PtyTerminalSession {
     return this.terminalEmulator.rows;
   }
 
+  resize(cols: number, rows: number) {
+    if (this._exited || this.disposed) return;
+    this.ptyProcess.resize(cols, rows);
+    this.terminalEmulator.resize(cols, rows);
+  }
+
   addExitListener(listener: ExitListener): () => void {
     this.exitListeners.add(listener);
     if (this._exited) {

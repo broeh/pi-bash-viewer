@@ -7,12 +7,14 @@ import { PtyTerminalSession } from './pty-session.ts';
 import type { PanelController } from './panel.ts';
 
 export const WIDGET_DELAY_MS = 100;
-export const WIDGET_HEIGHT = 15;
-export const DEFAULT_PTY_COLS = 100;
+export const WIDGET_HEIGHT = 40;
+export const DEFAULT_PTY_COLS = 120;
+export const NO_WORD_WRAP_COLS = 999;
 export const XTERM_SCROLLBACK_LINES = 100_000;
 
 export type PtyExecutionOptions = {
   splitView?: boolean;
+  wordWrap?: boolean;
   panel?: Pick<PanelController, 'addLivePty'>;
 };
 
@@ -26,7 +28,7 @@ async function runPtyCommand(
   options: PtyExecutionOptions = {},
 ) {
   const shellConfig = getShellConfig();
-  const cols = DEFAULT_PTY_COLS;
+  const cols = options.wordWrap === false ? NO_WORD_WRAP_COLS : DEFAULT_PTY_COLS;
   const rows = WIDGET_HEIGHT;
   const ptySession = new PtyTerminalSession({
     command,
@@ -43,6 +45,7 @@ async function runPtyCommand(
     command,
     startedAt: Date.now(),
     rows,
+    wordWrap: options.wordWrap ?? false,
     visible: false,
     disposed: false,
     session: ptySession,
@@ -104,9 +107,18 @@ async function runPtyCommand(
     if (timeoutHandle) clearTimeout(timeoutHandle);
     signal.removeEventListener('abort', onAbort);
     if (session.timer) clearTimeout(session.timer);
+
+    session.finalSnapshot = ptySession.getViewportSnapshot();
+    session.finalElapsedMs = Date.now() - session.startedAt;
     session.disposed = true;
-    cleanupView?.();
-    if (!cleanupView) hideLiveTerminal(ctx, session);
+
+    if (options.splitView) {
+      options.panel?.requestRender();
+    } else {
+      cleanupView?.();
+      if (!cleanupView) hideLiveTerminal(ctx, session);
+    }
+
     unsubscribe();
     ptySession.dispose();
   }

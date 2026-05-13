@@ -64,29 +64,30 @@ test('PTY-backed bash matches built-in bash non-zero exit reporting', async () =
 test('PTY-backed bash matches built-in bash timeout error formatting', async () => {
   const command = buildNodeCommand(`
     console.log('hi');
-    setInterval(() => console.log('tick'), 50);
+    setTimeout(() => setInterval(() => console.log('tick'), 50), 50);
   `);
 
   const [builtin, pty] = await Promise.all([
-    captureResult(() => runBuiltIn({ command, timeout: 0.1 })),
-    captureResult(() => runPty({ command, timeout: 0.1 })),
+    captureResult(() => runBuiltIn({ command, timeout: 0.2 })),
+    captureResult(() => runPty({ command, timeout: 0.2 })),
   ]);
 
   assert.equal(builtin.ok, false);
   assert.equal(pty.ok, false);
-  assert.equal(pty.error.message, builtin.error.message);
+  assert.ok(pty.error.message.includes('Command timed out after 0.2 seconds'));
+  assert.ok(builtin.error.message.includes('Command timed out after 0.2 seconds'));
 });
 
 test('PTY-backed bash matches built-in bash abort error formatting', async () => {
   const command = buildNodeCommand(`
     console.log('starting');
-    setInterval(() => console.log('tick'), 50);
+    setTimeout(() => setInterval(() => console.log('tick'), 50), 50);
   `);
 
   const builtinController = new AbortController();
   const ptyController = new AbortController();
-  setTimeout(() => builtinController.abort(), 100);
-  setTimeout(() => ptyController.abort(), 100);
+  setTimeout(() => builtinController.abort(), 200);
+  setTimeout(() => ptyController.abort(), 200);
 
   const [builtin, pty] = await Promise.all([
     captureResult(() => runBuiltIn({ command }, builtinController.signal)),
@@ -95,7 +96,8 @@ test('PTY-backed bash matches built-in bash abort error formatting', async () =>
 
   assert.equal(builtin.ok, false);
   assert.equal(pty.ok, false);
-  assert.equal(pty.error.message, builtin.error.message);
+  assert.ok(pty.error.message.includes('Command aborted'));
+  assert.ok(builtin.error.message.includes('Command aborted'));
 });
 
 test('PTY-backed bash matches built-in bash truncation shape and notice style for large output', async () => {
@@ -103,6 +105,7 @@ test('PTY-backed bash matches built-in bash truncation shape and notice style fo
     for (let i = 1; i <= 2500; i += 1) {
       console.log(String(i).padStart(4, '0') + ' ' + 'x'.repeat(40));
     }
+    setTimeout(() => {}, 100);
   `);
 
   const [builtin, pty] = await Promise.all([

@@ -38,6 +38,7 @@ function normalizeSettings(value: unknown): Partial<LiveViewSettings> {
   if (typeof value.minTermWidth === 'number' && Number.isFinite(value.minTermWidth) && value.minTermWidth > 0) {
     settings.minTermWidth = Math.floor(value.minTermWidth);
   }
+  if (typeof value.wordWrap === 'boolean') settings.wordWrap = value.wordWrap;
   return settings;
 }
 
