@@ -19,14 +19,15 @@ pi install npm:pi-bash-viewer
 
 ## Split view mode
 
-Use `/liveview` to toggle a persistent right-side live viewer panel. When enabled, model-initiated `bash` calls are automatically run with `usePTY=true`, and `!` / `!!` user bash commands stream into the same panel.
+Use `/liveview` or press the **`F4`** key to toggle a persistent right-side live viewer panel. When enabled, model-initiated `bash` calls are automatically run with `usePTY=true`, and `!` / `!!` user bash commands stream into the same panel.
 
-Use `/liveview-config` to adjust the panel width (`30%`, `40%`, `50%`) and minimum terminal width. Settings are stored project-locally in `.pi/settings.json` under the `liveview` key:
+Use `/liveview-config` to adjust the panel width (`30%`, `40%`, `50%`), word wrap behavior, and minimum terminal width. Settings are stored project-locally in `.pi/settings.json` under the `liveview` key:
 
 ```json
 {
   "liveview": {
     "splitView": true,
+    "wordWrap": false,
     "panelWidth": "30%",
     "minTermWidth": 80
   }
