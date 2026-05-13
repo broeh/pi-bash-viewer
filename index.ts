@@ -171,6 +171,18 @@ export default function bashViewer(pi: ExtensionAPI) {
     },
   });
 
+  pi.registerShortcut('f4', {
+    description: 'Toggle live viewer split-view',
+    handler: async (ctx) => {
+      const next = { ...refreshSettings(ctx.cwd), splitView: !currentSettings.splitView };
+      currentSettings = next;
+      saveSettings(ctx.cwd, next);
+      if (next.splitView) panel.attach(ctx as unknown as ExtensionContext);
+      else panel.detach();
+      ctx.ui.notify(`Live viewer split view ${next.splitView ? 'enabled' : 'disabled'}`, 'info');
+    },
+  });
+
   pi.registerCommand('liveview-config', {
     description: 'Configure the persistent live viewer panel',
     handler: async (_args, ctx) => {
